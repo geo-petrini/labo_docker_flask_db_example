@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    container_name: flask-mariadb-app
+    ports:
+      - "5010:5000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: esempio
+      DB_USER: root
+      DB_PASS: segreta
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11
+    container_name: flask-mariadb-db
+    ports:
+      - "3308:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: segreta
+      MARIADB_DATABASE: esempio
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      # https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mariadb-data:
